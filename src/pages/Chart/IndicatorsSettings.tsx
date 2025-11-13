@@ -15,10 +15,16 @@ export const IndicatorsSettings = ({
     return indicators[name] || [];
   };
 
-  const [calcParams, setCalcParams] = useState<number[]>();
+  const [calcParams, setCalcParams] = useState<Array<number | string>>(() =>
+    utils.clone(indicatorSettingModalParams.calcParams) as Array<number | string>
+  );
   useEffect(() => {
-    setCalcParams(utils.clone(indicatorSettingModalParams.calcParams));
-  }, []);
+    setCalcParams(
+      utils.clone(indicatorSettingModalParams.calcParams) as Array<
+        number | string
+      >
+    );
+  }, [indicatorSettingModalParams.calcParams]);
 
   return (
     <Modal open={indicatorSettingModalParams.visible}>
@@ -43,15 +49,15 @@ export const IndicatorsSettings = ({
               <div key={i} className="flex flex-col justify-center">
                 <label className="label text-info">{d.paramNameKey}</label>
                 <Input
-                  defaultValue={indicatorSettingModalParams.calcParams[i]}
+                  value={calcParams[i] ?? ""}
                   size="sm"
                   // precision={d.precision}
                   type={"number"}
                   min={d.min}
                   onChange={(e) => {
                     const params = utils.clone(
-                      indicatorSettingModalParams.calcParams
-                    );
+                      calcParams
+                    ) as Array<number | string>;
                     params[i] = e.target.value;
                     setCalcParams(params);
                   }}
@@ -69,15 +75,19 @@ export const IndicatorsSettings = ({
                 indicatorSettingModalParams.indicatorName
               );
               const params: any[] = [];
-              utils.clone(calcParams).forEach((param: any, i: number) => {
-                if (!utils.isValid(param) || param === "") {
-                  if ("default" in config[i]) {
-                    params.push(config[i]["default"]);
+              utils
+                .clone(calcParams)
+                .forEach((param: any, i: number) => {
+                  if (!utils.isValid(param) || param === "") {
+                    if ("default" in config[i]) {
+                      params.push(config[i]["default"]);
+                    }
+                  } else {
+                    const value =
+                      typeof param === "string" ? Number(param) : param;
+                    params.push(value);
                   }
-                } else {
-                  params.push(param);
-                }
-              });
+                });
               onConfirm(params);
               onClose();
             }}
